@@ -9,6 +9,9 @@ import OperationSection from './components/OperationSection';
 import ProgressSection from './components/ProgressSection';
 import Header from './components/Header';
 
+// Services
+import { login, startDeletion, getStats, cancelDeletion, logout } from './services/api';
+
 function App() {
   // State declarations
   const [currentSection, setCurrentSection] = useState('login');
@@ -29,15 +32,7 @@ function App() {
     }
     
     try {
-      const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-      
-      const data = await response.json();
+      const data = await login(username, password);
       
       if (data.success) {
         setLoggedInUsername(username);
@@ -47,6 +42,7 @@ function App() {
         toast.error(`Login failed: ${data.error}`);
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast.error("Error connecting to server");
     }
   };
@@ -63,22 +59,8 @@ function App() {
       elapsedSeconds: 0
     });
     
-    const requestData = {
-      delete_reels: deleteType === 'reels',
-      delete_messages: deleteType === 'messages',
-      max_items: maxItems || null,
-    };
-    
     try {
-      const response = await fetch('/delete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-      
-      const data = await response.json();
+      const data = await startDeletion(deleteType, maxItems);
       
       if (data.success) {
         toast.info(`Starting to delete ${deleteType}`);
@@ -91,6 +73,7 @@ function App() {
         showError("Failed to start deletion process", data.error);
       }
     } catch (error) {
+      console.error("Start deletion error:", error);
       showError("Failed to start deletion process", "Error connecting to server");
     }
   };
@@ -98,8 +81,7 @@ function App() {
   // Function to update statistics
   const updateStats = async () => {
     try {
-      const response = await fetch('/stats');
-      const data = await response.json();
+      const data = await getStats();
       
       setDeleteStats({
         deleted: data.deleted,
@@ -126,9 +108,9 @@ function App() {
   };
   
   // Function to cancel deletion
-  const cancelDeletion = async () => {
+  const cancelDeletionProcess = async () => {
     try {
-      await fetch('/cancel', { method: 'POST' });
+      await cancelDeletion();
       
       clearInterval(statsInterval);
       setStatsInterval(null);
@@ -140,6 +122,7 @@ function App() {
       
       toast.warning("Deletion process cancelled");
     } catch (error) {
+      console.error("Cancel deletion error:", error);
       toast.error("Failed to cancel deletion process");
     }
   };
@@ -201,8 +184,7 @@ function App() {
   // Function to handle logout
   const handleLogout = async () => {
     try {
-      const response = await fetch('/logout', { method: 'POST' });
-      const data = await response.json();
+      const data = await logout();
       
       if (data.success) {
         toast.success("Successfully logged out");
@@ -212,6 +194,7 @@ function App() {
         toast.error(data.error || "Logout failed");
       }
     } catch (error) {
+      console.error("Logout error:", error);
       toast.error("Error connecting to server during logout");
     }
   };
@@ -246,7 +229,7 @@ function App() {
           {currentSection === 'progress' && (
             <ProgressSection 
               stats={deleteStats} 
-              onCancel={cancelDeletion} 
+              onCancel={cancelDeletionProcess} 
             />
           )}
         </div>
