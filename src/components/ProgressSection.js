@@ -2,7 +2,7 @@ import React from 'react';
 
 const ProgressSection = ({ stats, onCancel }) => {
   const { deleted, total, inProgress, elapsedSeconds } = stats;
-  const progressPercentage = total > 0 ? (deleted / total) * 100 : 0;
+  const progressPercentage = total > 0 ? Math.min((deleted / total) * 100, 100) : 0;
   
   // Calculate ETA
   let etaMessage = "";
@@ -17,54 +17,80 @@ const ProgressSection = ({ stats, onCancel }) => {
   
   // Format elapsed time
   const elapsedMins = Math.floor(elapsedSeconds / 60);
-  const elapsedSecs = elapsedSeconds % 60;
+  const elapsedSecs = Math.floor(elapsedSeconds % 60);
   
-  // Determine status message
+  // Determine status message and icon
   let statusMessage = "Initializing...";
+  let statusIcon = "fa-circle-notch fa-spin text-purple-500";
+  
   if (inProgress) {
-    statusMessage = `Deleting... (${progressPercentage.toFixed(1)}% complete)`;
+    if (deleted > 0) {
+      statusMessage = `Deleting content (${progressPercentage.toFixed(1)}% complete)`;
+      statusIcon = "fa-spinner fa-spin text-purple-500";
+    } else {
+      statusMessage = "Scanning content...";
+      statusIcon = "fa-search fa-pulse text-purple-500";
+    }
   } else if (!inProgress && deleted > 0) {
     if (deleted === total) {
       statusMessage = "Deletion Complete!";
+      statusIcon = "fa-check-circle text-green-500";
     } else {
       statusMessage = "Process Stopped";
+      statusIcon = "fa-stop-circle text-yellow-500";
     }
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center text-gray-700">
-        <i className="fas fa-tasks mr-2"></i>
-        <h2 className="font-semibold">Deletion Progress</h2>
+    <div className="space-y-6">
+      <div className="flex items-center text-gray-800 mb-4">
+        <i className="fas fa-tasks text-purple-500 mr-2"></i>
+        <h2 className="text-xl font-semibold">Cleanup Progress</h2>
       </div>
 
-      <div className="relative pt-1">
-        <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
-          <div 
-            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-brand-purple to-brand-pink"
-            style={{ width: `${progressPercentage}%` }}
-          ></div>
+      <div className="bg-gray-50 p-6 rounded-xl">
+        <div className="mb-4">
+          <div className="relative pt-1">
+            <div className="overflow-hidden h-3 flex rounded-full bg-gray-200">
+              <div 
+                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500 ease-in-out"
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+          </div>
+          <div className="flex justify-between text-sm text-gray-600 mt-2 font-medium">
+            <span>{deleted} deleted</span>
+            <span>of {total} total</span>
+          </div>
         </div>
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>{deleted} deleted</span>
-          <span>of {total} total</span>
-        </div>
-      </div>
 
-      <div className="text-center py-3">
-        <div className="text-sm font-medium text-gray-700">
-          {statusMessage}
-          <br />
-          <span className="text-xs">Elapsed: {elapsedMins}m {elapsedSecs}s</span>
+        <div className="text-center py-6 space-y-3">
+          <div className="text-4xl">
+            <i className={`fas ${statusIcon}`}></i>
+          </div>
+          <div className="text-lg font-semibold text-gray-800">
+            {statusMessage}
+          </div>
+          <div className="flex justify-center space-x-4 text-sm text-gray-500">
+            <span className="flex items-center">
+              <i className="far fa-clock mr-1"></i>
+              {elapsedMins}m {elapsedSecs}s
+            </span>
+            {etaMessage && (
+              <span className="flex items-center">
+                <i className="far fa-hourglass mr-1"></i>
+                {etaMessage}
+              </span>
+            )}
+          </div>
         </div>
-        <div className="text-xs text-gray-500 mt-1">{etaMessage}</div>
       </div>
 
       <button 
-        className={`w-full py-3 font-medium rounded-lg flex items-center justify-center transition-colors ${
+        className={`w-full py-4 font-medium rounded-xl flex items-center justify-center transition-colors ${
           inProgress 
-            ? "bg-gray-700 text-white" 
-            : "bg-gray-300 text-gray-600"
+            ? "bg-red-500 text-white hover:bg-red-600" 
+            : "bg-gray-200 text-gray-400 cursor-not-allowed"
         }`}
         onClick={onCancel}
         disabled={!inProgress}
@@ -72,6 +98,16 @@ const ProgressSection = ({ stats, onCancel }) => {
         <i className="fas fa-stop-circle mr-2"></i>
         <span>Stop Process</span>
       </button>
+      
+      {!inProgress && (
+        <button 
+          className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-xl flex items-center justify-center transition-colors hover:bg-gray-200"
+          onClick={() => window.location.reload()}
+        >
+          <i className="fas fa-home mr-2"></i>
+          <span>Return to Dashboard</span>
+        </button>
+      )}
     </div>
   );
 };

@@ -151,6 +151,11 @@ function App() {
       text: `Successfully deleted ${deleted} item${deleted !== 1 ? "s" : ""}.`,
       icon: "success",
       confirmButtonText: "Back to Dashboard",
+      customClass: {
+        confirmButton: 'swal-confirm-button',
+        popup: 'swal-popup'
+      },
+      buttonsStyling: false
     }).then(() => {
       setCurrentSection('operation');
     });
@@ -163,6 +168,11 @@ function App() {
       text: `Deleted ${deleted} of ${total} item${total !== 1 ? "s" : ""}.`,
       icon: "warning",
       confirmButtonText: "Back to Dashboard",
+      customClass: {
+        confirmButton: 'swal-confirm-button',
+        popup: 'swal-popup'
+      },
+      buttonsStyling: false
     }).then(() => {
       setCurrentSection('operation');
     });
@@ -178,6 +188,11 @@ function App() {
       text: message,
       icon: "error",
       confirmButtonText: "Back to Dashboard",
+      customClass: {
+        confirmButton: 'swal-confirm-button',
+        popup: 'swal-popup'
+      },
+      buttonsStyling: false
     }).then(() => {
       setCurrentSection('operation');
     });
@@ -211,11 +226,11 @@ function App() {
   }, [statsInterval]);
   
   return (
-    <div className="bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="bg-gradient-to-br from-purple-50 to-pink-50 min-h-screen flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <Header />
         
-        <div className="p-6 space-y-6">
+        <div className="p-8 space-y-6">
           {currentSection === 'login' && (
             <LoginSection onLogin={handleLogin} />
           )}
@@ -236,7 +251,7 @@ function App() {
           )}
         </div>
       </div>
-      <ToastContainer />
+      <ToastContainer position="bottom-center" theme="colored" />
     </div>
   );
 }
