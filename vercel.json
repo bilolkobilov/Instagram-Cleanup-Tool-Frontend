@@ -8,7 +8,7 @@
       }
     ],
     "routes": [
-      { "src": "/(.*)", "dest": "/index.html" }
+      { "src": "/(.*)", "dest": "./public/index.html" }
     ]
   }
   
