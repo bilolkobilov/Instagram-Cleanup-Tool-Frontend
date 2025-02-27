@@ -1,70 +1,53 @@
-# Getting Started with Create React App
+# Instagram-Cleanup-Tool-Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Overview
+The **Instagram Cleanup Tool** allows users to efficiently delete Instagram posts, reels, and direct messages while maintaining control over deletion rates to prevent API blocks. Users can specify the maximum number of items to delete, monitor progress, and authenticate using their Instagram credentials.
 
-## Available Scripts
+## Features
+- Delete Instagram posts, reels, and direct messages
+- Control deletion with rate limiting to avoid API blocks
+- Specify the maximum number of items to delete
+- Monitor deletion progress with real-time statistics
+- User authentication with Instagram credentials
 
-In the project directory, you can run:
+## Tech Stack
+- **Frontend:** React, Tailwind CSS
+- **Backend:** Python (FastAPI, Flask) 
 
-### `npm start`
+## Installation & Setup
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Prerequisites
+- Node.js (v16 or later)
+- npm or yarn
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Steps
+1. **Clone the repository:**
+   ```sh
+   git clone https://github.com/bilolkobilov/Instagram-Cleanup-Tool-Frontend.git
+   cd Instagram-Cleanup-Tool-Frontend
+   ```
 
-### `npm test`
+2. **Install dependencies:**
+   ```sh
+   npm install  # or yarn install
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+3. **Set up environment variables:**
+   Create a `.env` file in the project root and configure:
+   ```env
+   REACT_APP_BACKEND_URL=https://instagram-cleanup-tool-backend.vercel.app/
+   ```
 
-### `npm run build`
+4. **Start the development server:**
+   ```sh
+   npm start  # or yarn start
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+   The app will be accessible at `http://localhost:3000/`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Contributing
+Feel free to submit issues and pull requests. Make sure to follow best coding practices and document your changes.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## License
+MIT License
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
