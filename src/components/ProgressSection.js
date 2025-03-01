@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from './common/Button';
 
 const ProgressSection = ({ stats, onCancel }) => {
   const { deleted, total, inProgress, elapsedSeconds } = stats;
@@ -51,11 +52,17 @@ const ProgressSection = ({ stats, onCancel }) => {
       <div className="bg-gray-50 p-6 rounded-xl">
         <div className="mb-4">
           <div className="relative pt-1">
-            <div className="overflow-hidden h-3 flex rounded-full bg-gray-200">
+            <div className="overflow-hidden h-4 flex rounded-full bg-gray-200">
               <div 
-                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500 ease-in-out"
+                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500 ease-in-out relative"
                 style={{ width: `${progressPercentage}%` }}
-              ></div>
+              >
+                {progressPercentage > 15 && (
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-bold">
+                    {progressPercentage.toFixed(0)}%
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex justify-between text-sm text-gray-600 mt-2 font-medium">
@@ -71,13 +78,13 @@ const ProgressSection = ({ stats, onCancel }) => {
           <div className="text-lg font-semibold text-gray-800">
             {statusMessage}
           </div>
-          <div className="flex justify-center space-x-4 text-sm text-gray-500">
-            <span className="flex items-center">
+          <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-500">
+            <span className="flex items-center justify-center">
               <i className="far fa-clock mr-1"></i>
               {elapsedMins}m {elapsedSecs}s
             </span>
             {etaMessage && (
-              <span className="flex items-center">
+              <span className="flex items-center justify-center">
                 <i className="far fa-hourglass mr-1"></i>
                 {etaMessage}
               </span>
@@ -86,27 +93,24 @@ const ProgressSection = ({ stats, onCancel }) => {
         </div>
       </div>
 
-      <button 
-        className={`w-full py-4 font-medium rounded-xl flex items-center justify-center transition-colors ${
-          inProgress 
-            ? "bg-red-500 text-white hover:bg-red-600" 
-            : "bg-gray-200 text-gray-400 cursor-not-allowed"
-        }`}
+      <Button 
+        variant="danger"
         onClick={onCancel}
         disabled={!inProgress}
+        className={!inProgress ? "opacity-50 cursor-not-allowed" : ""}
       >
         <i className="fas fa-stop-circle mr-2"></i>
         <span>Stop Process</span>
-      </button>
+      </Button>
       
       {!inProgress && (
-        <button 
-          className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-xl flex items-center justify-center transition-colors hover:bg-gray-200"
+        <Button 
+          variant="secondary"
           onClick={() => window.location.reload()}
         >
           <i className="fas fa-home mr-2"></i>
           <span>Return to Dashboard</span>
-        </button>
+        </Button>
       )}
     </div>
   );

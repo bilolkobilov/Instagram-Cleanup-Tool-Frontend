@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Swal from 'sweetalert2';
 
 // Components
 import LoginSection from './components/LoginSection';
@@ -10,7 +9,17 @@ import ProgressSection from './components/ProgressSection';
 import Header from './components/Header';
 
 // Services
-import { login, startDeletion, getStats, cancelDeletion, logout } from './services/api';
+import { startDeletion, getStats, cancelDeletion } from './services/api';
+import { 
+  handleLogin, 
+  handleLogout, 
+  isUserLoggedIn, 
+  getLoggedInUsername, 
+  attachActivityListeners 
+} from './services/auth';
+
+// Utils
+import { showSuccessModal, showErrorModal } from './utils/modal';
 
 function App() {
   // State declarations
@@ -23,16 +32,37 @@ function App() {
     elapsedSeconds: 0
   });
   const [statsInterval, setStatsInterval] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Handle session timeout
+  const handleSessionTimeout = useCallback(() => {
+    setCurrentSection('login');
+    showErrorModal('Session Expired', 'Your session has expired due to inactivity. Please log in again to continue.');
+  }, []);
+  
+  // Check login status on mount
+  useEffect(() => {
+    if (isUserLoggedIn()) {
+      const username = getLoggedInUsername();
+      setLoggedInUsername(username);
+      setCurrentSection('operation');
+      
+      // Attach activity listeners for session management
+      const removeListeners = attachActivityListeners(handleSessionTimeout);
+      
+      // Clean up
+      return () => {
+        removeListeners();
+      };
+    }
+  }, [handleSessionTimeout]);
   
   // Function to handle login
-  const handleLogin = async (username, password) => {
-    if (!username || !password) {
-      toast.warning("Please enter both username and password");
-      return;
-    }
+  const onLogin = async (username, password) => {
+    setIsLoading(true);
     
     try {
-      const data = await login(username, password);
+      const data = await handleLogin(username, password, handleSessionTimeout);
       
       if (data.success) {
         setLoggedInUsername(username);
@@ -44,6 +74,8 @@ function App() {
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Error connecting to server");
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -70,11 +102,11 @@ function App() {
         const interval = setInterval(updateStats, 2000);
         setStatsInterval(interval);
       } else {
-        showError("Failed to start deletion process", data.error);
+        showErrorModal("Failed to Start", data.error || "An error occurred while starting the deletion process");
       }
     } catch (error) {
       console.error("Start deletion error:", error);
-      showError("Failed to start deletion process", "Error connecting to server");
+      showErrorModal("Connection Error", "Failed to connect to the server. Please check your internet connection and try again.");
     }
   };
   
@@ -96,7 +128,7 @@ function App() {
         setStatsInterval(null);
         
         if (data.deleted === data.total) {
-          completionSuccess(data.deleted, data.total);
+          completionSuccess(data.deleted);
         } else {
           completionPartial(data.deleted, data.total);
         }
@@ -109,6 +141,8 @@ function App() {
   
   // Function to cancel deletion
   const cancelDeletionProcess = async () => {
+    setIsLoading(true);
+    
     try {
       await cancelDeletion();
       
@@ -121,70 +155,40 @@ function App() {
       }));
       
       toast.warning("Deletion process cancelled");
+      setIsLoading(false);
     } catch (error) {
       console.error("Cancel deletion error:", error);
       toast.error("Failed to cancel deletion process");
+      setIsLoading(false);
     }
   };
   
   // Function to handle successful completion
-  const completionSuccess = (deleted, total) => {
-    Swal.fire({
-      title: "Deletion Complete!",
-      text: `Successfully deleted ${deleted} item${deleted !== 1 ? "s" : ""}.`,
-      icon: "success",
-      confirmButtonText: "Back to Dashboard",
-      customClass: {
-        confirmButton: 'swal-confirm-button',
-        popup: 'swal-popup'
-      },
-      buttonsStyling: false
-    }).then(() => {
+  const completionSuccess = (deleted) => {
+    showSuccessModal(
+      "Deletion Complete!",
+      `Successfully deleted ${deleted} item${deleted !== 1 ? "s" : ""}.`
+    ).then(() => {
       setCurrentSection('operation');
     });
   };
   
   // Function to handle partial completion
   const completionPartial = (deleted, total) => {
-    Swal.fire({
-      title: "Process Stopped",
-      text: `Deleted ${deleted} of ${total} item${total !== 1 ? "s" : ""}.`,
-      icon: "warning",
-      confirmButtonText: "Back to Dashboard",
-      customClass: {
-        confirmButton: 'swal-confirm-button',
-        popup: 'swal-popup'
-      },
-      buttonsStyling: false
-    }).then(() => {
-      setCurrentSection('operation');
-    });
-  };
-  
-  // Function to show error
-  const showError = (title, message) => {
-    clearInterval(statsInterval);
-    setStatsInterval(null);
-    
-    Swal.fire({
-      title: title,
-      text: message,
-      icon: "error",
-      confirmButtonText: "Back to Dashboard",
-      customClass: {
-        confirmButton: 'swal-confirm-button',
-        popup: 'swal-popup'
-      },
-      buttonsStyling: false
-    }).then(() => {
+    showErrorModal(
+      "Process Incomplete",
+      `Deleted ${deleted} of ${total} item${total !== 1 ? "s" : ""}. Some items could not be deleted.`
+    ).then(() => {
       setCurrentSection('operation');
     });
   };
   
   // Function to handle logout
-  const handleLogout = async () => {
+  const onLogout = async () => {
+    setIsLoading(true);
+    
     try {
-      const data = await logout();
+      const data = await handleLogout();
       
       if (data.success) {
         toast.success("Successfully logged out");
@@ -196,6 +200,8 @@ function App() {
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Error connecting to server during logout");
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -208,33 +214,55 @@ function App() {
     };
   }, [statsInterval]);
   
+  // Return to dashboard from progress page if operation is no longer in progress
+  const returnToDashboard = () => {
+    setCurrentSection('operation');
+  };
+  
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-pink-50 min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+    <div className="bg-gradient-to-br from-purple-50 to-pink-50 min-h-screen flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-[95%] sm:max-w-md md:max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <Header />
         
-        <div className="p-8 space-y-6">
+        <div className="p-4 sm:p-8 space-y-6">
           {currentSection === 'login' && (
-            <LoginSection onLogin={handleLogin} />
+            <LoginSection 
+              onLogin={onLogin} 
+              isLoading={isLoading}
+            />
           )}
           
           {currentSection === 'operation' && (
             <OperationSection 
               username={loggedInUsername}
               onStartDeletion={startDeletionProcess}
-              onLogout={handleLogout}
+              onLogout={onLogout}
+              isLoading={isLoading}
             />
           )}
           
           {currentSection === 'progress' && (
             <ProgressSection 
               stats={deleteStats} 
-              onCancel={cancelDeletionProcess} 
+              onCancel={cancelDeletionProcess}
+              onReturn={returnToDashboard}
+              isLoading={isLoading}
             />
           )}
         </div>
       </div>
-      <ToastContainer position="bottom-center" theme="colored" />
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored" 
+      />
     </div>
   );
 }
